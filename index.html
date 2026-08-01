@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Smart Agriculture Monitoring System</title>
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<!-- Styles -->
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ==================== LOADING SCREEN ==================== -->
+<div id="loading-screen">
+  <div class="loading-inner">
+    <div class="loading-logo">
+      <i class="fa-solid fa-seedling"></i>
+    </div>
+    <h1 class="loading-title">Smart<span>Agri</span></h1>
+    <p class="loading-text" id="loading-text">Connecting to Firebase...</p>
+    <div class="loading-bar">
+      <div class="loading-bar-fill" id="loading-bar-fill"></div>
+    </div>
+  </div>
+  <div class="loading-particles" id="loading-particles"></div>
+</div>
+
+<!-- ==================== TOAST CONTAINER ==================== -->
+<div id="toast-container"></div>
+
+<!-- ==================== TOP NAVBAR ==================== -->
+<header class="navbar">
+  <div class="navbar-left">
+    <button id="sidebar-toggle" class="icon-btn" aria-label="Toggle sidebar">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+    <div class="brand">
+      <div class="brand-logo"><i class="fa-solid fa-seedling"></i></div>
+      <div class="brand-text">
+        <h1>Smart Agriculture <span>Monitoring System</span></h1>
+      </div>
+    </div>
+  </div>
+
+  <div class="navbar-right">
+    <div class="nav-chip" id="date-chip">
+      <i class="fa-regular fa-calendar"></i>
+      <span id="current-date">--</span>
+    </div>
+    <div class="nav-chip" id="time-chip">
+      <i class="fa-regular fa-clock"></i>
+      <span id="current-time">--:--:--</span>
+    </div>
+    <div class="nav-chip status-chip" id="wifi-chip">
+      <i class="fa-solid fa-wifi"></i>
+      <span id="wifi-status-text">Connecting</span>
+      <i class="fa-solid fa-circle status-dot" id="wifi-dot"></i>
+    </div>
+    <div class="nav-chip status-chip" id="firebase-chip">
+      <i class="fa-solid fa-fire"></i>
+      <span id="firebase-status-text">Connecting</span>
+      <i class="fa-solid fa-circle status-dot" id="firebase-dot"></i>
+    </div>
+  </div>
+</header>
+
+<div class="app-shell">
+
+  <!-- ==================== SIDEBAR ==================== -->
+  <aside class="sidebar" id="sidebar">
+    <nav class="side-nav">
+      <a href="#dashboard" class="side-link active" data-target="dashboard">
+        <i class="fa-solid fa-gauge-high"></i><span>Dashboard</span>
+      </a>
+      <a href="#history" class="side-link" data-target="history">
+        <i class="fa-solid fa-clock-rotate-left"></i><span>History</span>
+      </a>
+      <a href="#analytics" class="side-link" data-target="analytics">
+        <i class="fa-solid fa-chart-line"></i><span>Analytics</span>
+      </a>
+      <a href="#prediction" class="side-link" data-target="prediction">
+        <i class="fa-solid fa-droplet"></i><span>Prediction</span>
+      </a>
+      <a href="#advisory" class="side-link" data-target="advisory">
+        <i class="fa-solid fa-lightbulb"></i><span>Advisory</span>
+      </a>
+      <a href="#settings" class="side-link" data-target="settings">
+        <i class="fa-solid fa-gear"></i><span>Settings</span>
+      </a>
+      <a href="#about" class="side-link" data-target="about">
+        <i class="fa-solid fa-circle-info"></i><span>About</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-hw">
+        <i class="fa-solid fa-microchip"></i>
+        <div>
+          <p>ESP32 Node</p>
+          <span id="sidebar-hw-status">Initializing…</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- ==================== MAIN CONTENT ==================== -->
+  <main class="main-content">
+
+    <!-- ---------- Section: Dashboard ---------- -->
+    <section id="dashboard" class="page-section active-section">
+
+      <div class="section-heading">
+        <h2>Field Overview</h2>
+        <p>Live readings streamed from your ESP32 sensor node</p>
+      </div>
+
+      <!-- Sensor Cards Grid -->
+      <div class="cards-grid">
+
+        <!-- Card: Soil Moisture -->
+        <article class="card sensor-card fade-in" style="--delay:0s" data-status="normal">
+          <div class="card-head">
+            <div class="card-icon soil"><i class="fa-solid fa-seedling"></i></div>
+            <div>
+              <h3>Soil Moisture</h3>
+              <span class="card-sub">Field capacitive sensor</span>
+            </div>
+            <span class="badge" id="soil-status">Normal</span>
+          </div>
+          <div class="card-body gauge-body">
+            <div class="gauge-wrap">
+              <svg viewBox="0 0 120 120" class="gauge-svg">
+                <circle cx="60" cy="60" r="52" class="gauge-track"></circle>
+                <circle cx="60" cy="60" r="52" class="gauge-progress" id="soil-gauge"></circle>
+              </svg>
+              <div class="gauge-value">
+                <span id="soil-value">--</span>
+                <small>%</small>
+              </div>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill" id="soil-bar"></div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card: Temperature -->
+        <article class="card sensor-card fade-in" style="--delay:.05s" data-status="normal">
+          <div class="card-head">
+            <div class="card-icon temp"><i class="fa-solid fa-temperature-half"></i></div>
+            <div>
+              <h3>Temperature</h3>
+              <span class="card-sub">DHT22 ambient sensor</span>
+            </div>
+            <span class="badge" id="temp-status">Normal</span>
+          </div>
+          <div class="card-body thermo-body">
+            <div class="thermometer">
+              <div class="thermo-tube">
+                <div class="thermo-fill" id="thermo-fill"></div>
+              </div>
+              <div class="thermo-bulb"><div class="thermo-bulb-fill" id="thermo-bulb-fill"></div></div>
+            </div>
+            <div class="thermo-readout">
+              <span id="temp-value">--</span><small>&deg;C</small>
+              <p class="readout-caption">Feels comfortable for crop growth</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card: Humidity -->
+        <article class="card sensor-card fade-in" style="--delay:.1s" data-status="normal">
+          <div class="card-head">
+            <div class="card-icon humid"><i class="fa-solid fa-droplet"></i></div>
+            <div>
+              <h3>Humidity</h3>
+              <span class="card-sub">Relative air moisture</span>
+            </div>
+            <span class="badge" id="humidity-status">Normal</span>
+          </div>
+          <div class="card-body water-body">
+            <div class="water-tube">
+              <div class="water-level" id="water-level">
+                <svg class="wave" viewBox="0 0 200 20" preserveAspectRatio="none"><path d="M0 10 Q 25 0 50 10 T 100 10 T 150 10 T 200 10 V20 H0 Z"></path></svg>
+              </div>
+            </div>
+            <div class="water-readout">
+              <span id="humidity-value">--</span><small>%</small>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card: Air Quality -->
+        <article class="card sensor-card fade-in" style="--delay:.15s" data-status="good">
+          <div class="card-head">
+            <div class="card-icon air"><i class="fa-solid fa-wind"></i></div>
+            <div>
+              <h3>Air Quality</h3>
+              <span class="card-sub">MQ135 gas sensor</span>
+            </div>
+            <span class="badge" id="air-status">Good</span>
+          </div>
+          <div class="card-body air-body">
+            <div class="aqi-ring">
+              <span id="air-value">--</span>
+              <small>MQ135</small>
+            </div>
+            <div class="aqi-scale">
+              <div class="aqi-scale-track">
+                <div class="aqi-scale-marker" id="aqi-marker"></div>
+              </div>
+              <div class="aqi-scale-labels">
+                <span>Excellent</span><span>Good</span><span>Moderate</span><span>Poor</span><span>Danger</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card: Pressure -->
+        <article class="card sensor-card fade-in" style="--delay:.2s" data-status="normal">
+          <div class="card-head">
+            <div class="card-icon pressure"><i class="fa-solid fa-cloud-bolt"></i></div>
+            <div>
+              <h3>Atmospheric Pressure</h3>
+              <span class="card-sub">BMP280 barometric sensor</span>
+            </div>
+            <span class="badge" id="pressure-status">Normal</span>
+          </div>
+          <div class="card-body pressure-body">
+            <div class="pressure-value">
+              <span id="pressure-value">--</span><small>hPa</small>
+            </div>
+            <div class="pressure-trend" id="pressure-trend">
+              <i class="fa-solid fa-arrow-right"></i> <span>Stable</span>
+            </div>
+            <p class="readout-caption">Normal range: 980 – 1030 hPa</p>
+          </div>
+        </article>
+
+        <!-- Card: Hardware Status -->
+        <article class="card status-card fade-in" style="--delay:.25s">
+          <div class="card-head">
+            <div class="card-icon hw"><i class="fa-solid fa-server"></i></div>
+            <div>
+              <h3>Hardware Status</h3>
+              <span class="card-sub">Node health check</span>
+            </div>
+          </div>
+          <div class="card-body hw-body" id="hw-status-list">
+            <div class="hw-row"><span><i class="fa-solid fa-microchip"></i> ESP32</span><span class="hw-dot online" id="hw-esp32"></span></div>
+            <div class="hw-row"><span><i class="fa-solid fa-wifi"></i> WiFi</span><span class="hw-dot online" id="hw-wifi"></span></div>
+            <div class="hw-row"><span><i class="fa-solid fa-fire"></i> Firebase</span><span class="hw-dot online" id="hw-firebase"></span></div>
+            <div class="hw-row"><span><i class="fa-solid fa-satellite-dish"></i> Sensors</span><span class="hw-dot online" id="hw-sensors"></span></div>
+            <div class="hw-row"><span><i class="fa-solid fa-power-off"></i> System</span><span class="hw-dot online" id="hw-system"></span></div>
+          </div>
+        </article>
+
+        <!-- Card: Last Updated -->
+        <article class="card update-card fade-in" style="--delay:.3s">
+          <div class="card-head">
+            <div class="card-icon update"><i class="fa-solid fa-clock"></i></div>
+            <div>
+              <h3>Last Updated</h3>
+              <span class="card-sub">Latest sync from device</span>
+            </div>
+          </div>
+          <div class="card-body update-body">
+            <p class="update-time" id="last-updated-time">--</p>
+            <p class="readout-caption" id="last-updated-ago">Waiting for first reading…</p>
+            <div class="pulse-dot"></div>
+          </div>
+        </article>
+
+      </div>
+
+      <!-- Irrigation Prediction -->
+      <div class="section-heading section-heading-spaced">
+        <h2>Irrigation Prediction</h2>
+        <p>Automated recommendation based on real-time soil moisture</p>
+      </div>
+
+      <div class="prediction-card fade-in" id="prediction-card" data-level="normal">
+        <div class="prediction-icon">
+          <i class="fa-solid fa-droplet water-drop-anim"></i>
+        </div>
+        <div class="prediction-text">
+          <h3 id="prediction-title">Soil Moisture Normal</h3>
+          <p id="prediction-subtitle">Your field moisture is within the optimal range. No action needed.</p>
+          <div class="prediction-meta">
+            <div><span>Estimated need</span><strong id="prediction-need">0 mm</strong></div>
+            <div><span>Next check</span><strong id="prediction-next">30 min</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Weather Summary -->
+      <div class="section-heading section-heading-spaced">
+        <h2>Weather Summary</h2>
+        <p>Condensed environmental snapshot</p>
+      </div>
+
+      <div class="weather-grid">
+        <div class="weather-chip fade-in">
+          <i class="fa-solid fa-temperature-half"></i>
+          <div><span id="w-temp">--&deg;C</span><small>Temperature <i class="fa-solid fa-arrow-trend-up trend" id="w-temp-trend"></i></small></div>
+        </div>
+        <div class="weather-chip fade-in">
+          <i class="fa-solid fa-droplet"></i>
+          <div><span id="w-humidity">--%</span><small>Humidity <i class="fa-solid fa-arrow-trend-up trend" id="w-humidity-trend"></i></small></div>
+        </div>
+        <div class="weather-chip fade-in">
+          <i class="fa-solid fa-cloud-bolt"></i>
+          <div><span id="w-pressure">-- hPa</span><small>Pressure <i class="fa-solid fa-arrow-trend-up trend" id="w-pressure-trend"></i></small></div>
+        </div>
+        <div class="weather-chip fade-in">
+          <i class="fa-solid fa-wind"></i>
+          <div><span id="w-air">--</span><small>Air Quality <i class="fa-solid fa-arrow-trend-up trend" id="w-air-trend"></i></small></div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ---------- Section: History / Analytics (Charts) ---------- -->
+    <section id="history" class="page-section">
+      <div class="section-heading">
+        <h2>Sensor History</h2>
+        <p>Latest 50 readings synced from Firebase</p>
+      </div>
+      <div class="charts-grid">
+        <div class="chart-card fade-in">
+          <div class="chart-card-head"><i class="fa-solid fa-temperature-half"></i><h3>Temperature History</h3></div>
+          <div class="chart-container"><canvas id="chart-temperature"></canvas></div>
+        </div>
+        <div class="chart-card fade-in">
+          <div class="chart-card-head"><i class="fa-solid fa-droplet"></i><h3>Humidity History</h3></div>
+          <div class="chart-container"><canvas id="chart-humidity"></canvas></div>
+        </div>
+        <div class="chart-card fade-in">
+          <div class="chart-card-head"><i class="fa-solid fa-seedling"></i><h3>Soil Moisture History</h3></div>
+          <div class="chart-container"><canvas id="chart-soil"></canvas></div>
+        </div>
+        <div class="chart-card fade-in">
+          <div class="chart-card-head"><i class="fa-solid fa-wind"></i><h3>Air Quality History</h3></div>
+          <div class="chart-container"><canvas id="chart-air"></canvas></div>
+        </div>
+        <div class="chart-card fade-in wide">
+          <div class="chart-card-head"><i class="fa-solid fa-cloud-bolt"></i><h3>Pressure History</h3></div>
+          <div class="chart-container"><canvas id="chart-pressure"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="analytics" class="page-section">
+      <div class="section-heading">
+        <h2>Analytics</h2>
+        <p>Correlated view of all live field metrics</p>
+      </div>
+      <div class="charts-grid">
+        <div class="chart-card wide fade-in">
+          <div class="chart-card-head"><i class="fa-solid fa-chart-line"></i><h3>All Metrics Overview</h3></div>
+          <div class="chart-container"><canvas id="chart-overview"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- Section: Prediction (detail) ---------- -->
+    <section id="prediction" class="page-section">
+      <div class="section-heading">
+        <h2>Irrigation Prediction</h2>
+        <p>Rule-based recommendation engine</p>
+      </div>
+      <div class="prediction-card fade-in" data-level="normal">
+        <div class="prediction-icon"><i class="fa-solid fa-droplet water-drop-anim"></i></div>
+        <div class="prediction-text">
+          <h3 id="prediction-title-2">Soil Moisture Normal</h3>
+          <p id="prediction-subtitle-2">Your field moisture is within the optimal range. No action needed.</p>
+          <div class="prediction-meta">
+            <div><span>Estimated need</span><strong id="prediction-need-2">0 mm</strong></div>
+            <div><span>Next check</span><strong id="prediction-next-2">30 min</strong></div>
+          </div>
+        </div>
+      </div>
+      <div class="rules-panel fade-in">
+        <h3>Recommendation Rules</h3>
+        <ul>
+          <li><span class="rule-tag dry">&lt; 30%</span> Irrigation Required — soil is too dry for healthy growth</li>
+          <li><span class="rule-tag normal">30% – 70%</span> Soil Moisture Normal — no action needed</li>
+          <li><span class="rule-tag wet">&gt; 70%</span> Soil is Wet — irrigation should be paused</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ---------- Section: Advisory (Fertilizer / Guidance) ---------- -->
+    <section id="advisory" class="page-section">
+      <div class="section-heading">
+        <h2>Farming Advisory</h2>
+        <p>Fertilizer &amp; action guidance based on temperature and humidity &middot; refreshes every 1 minute</p>
+      </div>
+
+      <div class="weather-grid">
+        <div class="weather-chip fade-in">
+          <i class="fa-solid fa-temperature-half"></i>
+          <div><span id="adv-temp">--&deg;C</span><small id="adv-temp-tag">Temperature</small></div>
+        </div>
+        <div class="weather-chip fade-in">
+          <i class="fa-solid fa-droplet"></i>
+          <div><span id="adv-humidity">--%</span><small id="adv-humidity-tag">Humidity</small></div>
+        </div>
+        <div class="weather-chip fade-in">
+          <i class="fa-solid fa-rotate"></i>
+          <div><span id="adv-next-update">60s</span><small>Next refresh</small></div>
+        </div>
+      </div>
+
+      <div class="cards-grid advisory-grid">
+
+        <article class="card advisory-card fade-in" style="--delay:.05s">
+          <div class="card-head">
+            <div class="card-icon fert"><i class="fa-solid fa-flask"></i></div>
+            <div>
+              <h3>Fertilizer Recommendation</h3>
+              <span class="card-sub">Based on all sensor data </span>
+            </div>
+          </div>
+          <div class="card-body advisory-body">
+            <p class="advisory-main-text" id="adv-fertilizer-title">Waiting for sensor data&hellip;</p>
+            <p class="readout-caption" id="adv-fertilizer-detail">Live temperature and humidity readings will generate a recommendation automatically.</p>
+          </div>
+        </article>
+
+        <article class="card advisory-card fade-in" style="--delay:.1s">
+          <div class="card-head">
+            <div class="card-icon action"><i class="fa-solid fa-tractor"></i></div>
+            <div>
+              <h3>Recommended Farm Actions</h3>
+              <span class="card-sub">What to do in the field right now</span>
+            </div>
+          </div>
+          <div class="card-body advisory-body">
+            <ul class="advisory-list" id="adv-actions-list">
+              <li>Waiting for sensor data&hellip;</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="card advisory-card fade-in wide" style="--delay:.15s">
+          <div class="card-head">
+            <div class="card-icon note"><i class="fa-solid fa-circle-info"></i></div>
+            <div>
+              <h3>Condition Summary</h3>
+              <span class="card-sub">Overall field guidance</span>
+            </div>
+          </div>
+          <div class="card-body advisory-body">
+            <p class="advisory-main-text" id="adv-summary-title">--</p>
+            <p class="readout-caption" id="adv-summary-detail">--</p>
+            <p class="advisory-disclaimer">This is general, rule-based guidance only. Always confirm fertilizer type and dosage with a local agronomist or soil test before applying.</p>
+          </div>
+        </article>
+
+      </div>
+
+      <p class="advisory-updated" id="adv-last-updated">Advice last generated: --</p>
+    </section>
+
+    <!-- ---------- Section: Settings ---------- -->
+    <section id="settings" class="page-section">
+      <div class="section-heading">
+        <h2>Settings</h2>
+        <p>Device status &amp; connection panel</p>
+      </div>
+      <div class="device-panel fade-in">
+        <div class="device-row">
+          <span><i class="fa-solid fa-microchip"></i> ESP32 Connected</span>
+          <span class="hw-dot online" id="dp-esp32"></span>
+        </div>
+        <div class="device-row">
+          <span><i class="fa-solid fa-wifi"></i> WiFi Connected</span>
+          <span class="hw-dot online" id="dp-wifi"></span>
+        </div>
+        <div class="device-row">
+          <span><i class="fa-solid fa-fire"></i> Firebase Connected</span>
+          <span class="hw-dot online" id="dp-firebase"></span>
+        </div>
+        <div class="device-row">
+          <span><i class="fa-solid fa-rotate"></i> Last Sync</span>
+          <span id="dp-last-sync">--</span>
+        </div>
+        <div class="device-row">
+          <span><i class="fa-solid fa-signal"></i> Signal Strength</span>
+          <div class="signal-bars" id="dp-signal">
+            <i></i><i></i><i></i><i></i>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- Section: About ---------- -->
+    <section id="about" class="page-section">
+      <div class="section-heading">
+        <h2>About This Project</h2>
+        <p>Smart Agriculture Monitoring System</p>
+      </div>
+      <div class="about-panel fade-in">
+        <p>This dashboard connects to a Firebase Realtime Database to display live readings streamed from an ESP32 microcontroller equipped with soil moisture, temperature, humidity, air quality and pressure sensors. Data updates automatically without a page refresh, and the last 50 readings are retained for trend analysis.</p>
+        <p>Built entirely with HTML5, CSS3 and vanilla JavaScript — no frameworks required.</p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ==================== FOOTER ==================== -->
+<footer class="app-footer">
+  <p>Smart Agriculture Monitoring System &middot; Developed using ESP32, Firebase, HTML, CSS &amp; JavaScript</p>
+  <p>&copy; <span id="footer-year"></span> All rights reserved.</p>
+</footer>
+
+<!-- Firebase SDK (compat, v10) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+<!-- Scripts -->
+<script src="firebase.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
